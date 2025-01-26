@@ -1,4 +1,4 @@
-rootProject.name = "graphShow"
+rootProject.name = "GraphShow"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
