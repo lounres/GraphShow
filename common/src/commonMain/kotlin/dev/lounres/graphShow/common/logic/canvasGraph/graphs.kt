@@ -28,6 +28,7 @@ import dev.lounres.kone.graphs.RemovableGraphVertex
 import dev.lounres.kone.graphs.minus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.Serializable
 import kotlin.js.JsName
 
 
@@ -37,6 +38,7 @@ public interface PlaneGraphVertex : RemovableGraphVertex<PlaneGraphVertex, Plane
 
 public interface PlaneGraphEdge : RemovableGraphEdge<PlaneGraphVertex, PlaneGraphEdge>
 
+@Serializable(with = PlaneGraphKSerializer::class)
 public interface PlaneGraph : ReducibleGraph<PlaneGraphVertex, PlaneGraphEdge> {
     public fun addVertex(point2: Point2<Float>): PlaneGraphVertex
     public fun addEdge(tail: PlaneGraphVertex, head: PlaneGraphVertex): PlaneGraphEdge

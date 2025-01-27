@@ -1,3 +1,7 @@
+plugins {
+    alias(versions.plugins.kotlinx.serialization)
+}
+
 kotlin {
     jvm { withJava() }
     
@@ -21,7 +25,16 @@ kotlin {
                 api(kone.computationalGeometry)
                 api(kone.misc.composeCanvas)
                 
+                // kotlinx-serialization
+                api(versions.kotlinx.serialization.core)
+                api(versions.kotlinx.serialization.json)
+                
+                // kotlinx-datetime
                 implementation(versions.kotlinx.datetime)
+                
+                // FileKit
+                api(libs.fileKit.core)
+                api(libs.fileKit.compose)
             }
         }
     }

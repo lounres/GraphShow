@@ -8,16 +8,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 
 class RealGraphShowWindowComponent(
-    graph: PlaneGraph
+    graph: PlaneGraph = PlaneGraph(),
 ): GraphShowWindowComponent {
-    override val pointerStateStateFlow: MutableStateFlow<PointerState> = MutableStateFlow<PointerState>(PointerState.Free)
-    
     override val isVerticesListOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isEdgesListOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     
-    override val graphShowCanvasComponent: GraphShowCanvasComponent =
-        RealGraphShowCanvasComponent(
-            graph = graph,
-            pointerStateStateFlow = pointerStateStateFlow,
+    override val graphShowCanvasComponentStateFlow: MutableStateFlow<GraphShowCanvasComponent> =
+        MutableStateFlow(
+            RealGraphShowCanvasComponent(
+                graph = graph,
+                pointerStateStateFlow = MutableStateFlow<PointerState>(PointerState.Free),
+            )
         )
 }

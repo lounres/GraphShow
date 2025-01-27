@@ -1,5 +1,8 @@
 [versions]
+fileKit = "0.8.8"
 
 [plugins]
 
 [libraries]
+fileKit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "fileKit" }
+fileKit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "fileKit" }

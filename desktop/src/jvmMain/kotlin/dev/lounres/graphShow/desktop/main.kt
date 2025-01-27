@@ -23,50 +23,49 @@ import androidx.compose.ui.window.singleWindowApplication
 import dev.lounres.graphShow.common.logic.canvasGraph.PlaneGraph
 import dev.lounres.graphShow.common.logic.canvasGraph.PlaneGraphVertex
 import dev.lounres.graphShow.common.ui.components.graphCanvas.PointerState
+import dev.lounres.graphShow.common.ui.components.graphCanvas.RealGraphShowCanvasComponent
 import dev.lounres.graphShow.common.ui.implementation.graphCanvas.GraphShowCanvasUI
 import dev.lounres.graphShow.desktop.resources.*
 import dev.lounres.graphShow.desktop.ui.components.GraphShowWindowComponent
 import dev.lounres.graphShow.desktop.ui.components.RealGraphShowWindowComponent
 import dev.lounres.kone.collections.interop.toList
-import dev.lounres.kone.collections.list.koneListOf
-import dev.lounres.kone.computationalGeometry.Point2
+import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.compose.rememberFileSaverLauncher
+import io.github.vinceglb.filekit.core.PickerMode
+import io.github.vinceglb.filekit.core.PickerType
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 import org.jetbrains.compose.resources.painterResource
 
 
+val json = Json
+
+@OptIn(ExperimentalSerializationApi::class)
 fun main() {
-    val graph = PlaneGraph()
-    
-    with(graph) {
-        val vertices = koneListOf(
-            addVertex(Point2(-50.0f, -50.0f)),
-            addVertex(Point2(50.0f, -50.0f)),
-            addVertex(Point2(-50.0f, 50.0f)),
-            addVertex(Point2(50.0f, 50.0f)),
-            addVertex(Point2(150.0f, -50.0f)),
-            addVertex(Point2(250.0f, -50.0f)),
-            addVertex(Point2(150.0f, 50.0f)),
-            addVertex(Point2(250.0f, 50.0f)),
-        )
-        
-        val edges = koneListOf(
-            addEdge(vertices[0u], vertices[1u]),
-            addEdge(vertices[1u], vertices[2u]),
-            addEdge(vertices[2u], vertices[0u]),
-            addEdge(vertices[3u], vertices[1u]),
-        )
-    }
-    
-    val graphShowWindowComponent: GraphShowWindowComponent =
-        RealGraphShowWindowComponent(
-            graph = graph,
-        )
+    val graphShowWindowComponent: GraphShowWindowComponent = RealGraphShowWindowComponent()
     
     singleWindowApplication {
+        val graphShowCanvasComponent by graphShowWindowComponent.graphShowCanvasComponentStateFlow.collectAsState()
+        val filePickerLauncher = rememberFilePickerLauncher(
+            type = PickerType.File(listOf("graphshow.json")),
+            mode = PickerMode.Single,
+        ) {
+            if (it == null) return@rememberFilePickerLauncher
+            val graph = json.decodeFromStream<PlaneGraph>(it.file.inputStream())
+            graphShowWindowComponent.graphShowCanvasComponentStateFlow.value =
+                RealGraphShowCanvasComponent(
+                    graph = graph,
+                    pointerStateStateFlow = MutableStateFlow(PointerState.Free),
+                )
+        }
+        val fileSaverLauncher = rememberFileSaverLauncher {}
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            val pointerState by graphShowWindowComponent.pointerStateStateFlow.collectAsState()
+            val pointerState by graphShowCanvasComponent.pointerStateStateFlow.collectAsState()
             Row(
                 modifier = Modifier.fillMaxWidth().padding(8.dp),
                 horizontalArrangement = Arrangement.Start,
@@ -86,7 +85,7 @@ fun main() {
                         PointerState.Removing -> false
                     },
                     onCheckedChange = {
-                        graphShowWindowComponent.pointerStateStateFlow.update { pointerState ->
+                        graphShowCanvasComponent.pointerStateStateFlow.update { pointerState ->
                             when (pointerState) {
                                 PointerState.Free,
                                 is PointerState.Pressed,
@@ -123,7 +122,7 @@ fun main() {
                         PointerState.Removing -> false
                     },
                     onCheckedChange = {
-                        graphShowWindowComponent.pointerStateStateFlow.update { pointerState ->
+                        graphShowCanvasComponent.pointerStateStateFlow.update { pointerState ->
                             when (pointerState) {
                                 PointerState.Free,
                                 is PointerState.Pressed,
@@ -160,7 +159,7 @@ fun main() {
                         PointerState.Removing -> true
                     },
                     onCheckedChange = {
-                        graphShowWindowComponent.pointerStateStateFlow.update { pointerState ->
+                        graphShowCanvasComponent.pointerStateStateFlow.update { pointerState ->
                             when (pointerState) {
                                 PointerState.Free,
                                 is PointerState.Pressed,
@@ -180,6 +179,34 @@ fun main() {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Remove",
+                    )
+                }
+                Spacer(Modifier.width(2.dp))
+                FilledTonalIconButton(
+                    onClick = {
+                        fileSaverLauncher.launch(
+                            bytes = json.encodeToString(graphShowCanvasComponent.graph).encodeToByteArray(),
+                            baseName = "",
+                            extension = "graphshow.json",
+                        )
+                    },
+                    shape = RoundedCornerShape(percent = 20),
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.save),
+                        contentDescription = "Save graph",
+                    )
+                }
+                Spacer(Modifier.width(2.dp))
+                FilledTonalIconButton(
+                    onClick = {
+                        filePickerLauncher.launch()
+                    },
+                    shape = RoundedCornerShape(percent = 20),
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.open),
+                        contentDescription = "Open graph",
                     )
                 }
                 Spacer(Modifier.weight(1f))
@@ -217,7 +244,7 @@ fun main() {
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f),
-                    component = graphShowWindowComponent.graphShowCanvasComponent
+                    component = graphShowWindowComponent.graphShowCanvasComponentStateFlow.collectAsState().value
                 )
                 if (graphShowWindowComponent.isVerticesListOpen.collectAsState().value) {
                     VerticalDivider()
@@ -238,7 +265,7 @@ fun main() {
                                 .fillMaxWidth()
                                 .weight(1f),
                         ) {
-                            val vertices by graph.verticesStateFlow.collectAsState()
+                            val vertices by graphShowCanvasComponent.graph.verticesStateFlow.collectAsState()
                             LazyColumn(
                                 modifier = Modifier.fillMaxHeight().weight(1f),
                                 state = scrollState,
@@ -250,7 +277,7 @@ fun main() {
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .onClick {
-                                                graphShowWindowComponent.pointerStateStateFlow.value =
+                                                graphShowCanvasComponent.pointerStateStateFlow.value =
                                                     PointerState.Clicked.Vertex(
                                                         vertex = vertex,
                                                         currentPosition = vertex.position,
@@ -314,7 +341,7 @@ fun main() {
                                 .fillMaxWidth()
                                 .weight(1f),
                         ) {
-                            val edges by graph.edgesStateFlow.collectAsState()
+                            val edges by graphShowCanvasComponent.graph.edgesStateFlow.collectAsState()
                             LazyColumn(
                                 modifier = Modifier.fillMaxHeight().weight(1f),
                                 state = scrollState,
@@ -326,7 +353,7 @@ fun main() {
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .onClick {
-                                                graphShowWindowComponent.pointerStateStateFlow.value =
+                                                graphShowCanvasComponent.pointerStateStateFlow.value =
                                                     PointerState.Clicked.Edge(
                                                         edge = edge,
                                                     )

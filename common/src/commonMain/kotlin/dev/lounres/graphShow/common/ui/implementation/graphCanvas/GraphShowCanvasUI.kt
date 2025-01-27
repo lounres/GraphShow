@@ -34,6 +34,7 @@ import kotlin.time.Duration.Companion.seconds
 
 internal val clock = Clock.System
 internal val maximalDUrationBetweenClicks = 0.5.seconds
+internal expect val scrollDeltaNormalization: Float
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -325,7 +326,7 @@ public fun GraphShowCanvasUI(
                                 }
                                 
                                 event.type == PointerEventType.Scroll -> {
-                                    val zoomDelta = exp(lastChange.scrollDelta.y / 10)
+                                    val zoomDelta = exp(lastChange.scrollDelta.y / scrollDeltaNormalization)
                                     
                                     val (oldOffset, oldZoom) = koneCanvasState
                                     val newZoom = oldZoom * zoomDelta

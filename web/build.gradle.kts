@@ -1,6 +1,11 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
+
+plugins {
+    alias(versions.plugins.kotlinx.serialization)
+}
+
 kotlin {
     js {
         moduleName = "GraphShow"

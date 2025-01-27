@@ -106,6 +106,7 @@ stal {
                             enableLanguageFeature("ExplicitBackingFields")
                             optIn("kotlin.contracts.ExperimentalContracts")
                             optIn("kotlin.ExperimentalStdlibApi")
+                            optIn("kotlin.ExperimentalUnsignedTypes")
                             optIn("kotlin.uuid.ExperimentalUuidApi")
                             optIn("androidx.compose.foundation.ExperimentalFoundationApi")
                         }

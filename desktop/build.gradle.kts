@@ -1,6 +1,10 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 
+plugins {
+    alias(versions.plugins.kotlinx.serialization)
+}
+
 kotlin {
     sourceSets {
         jvmMain {
